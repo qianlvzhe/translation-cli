@@ -1,0 +1,39 @@
+[package]
+name = "translation-cli"
+version = "0.1.0"
+edition = "2021"
+description = "命令行HTML翻译工具，基于html-translation-lib库"
+authors = ["Claude <noreply@anthropic.com>"]
+
+[dependencies]
+# 发布版本依赖库
+html-translation-lib = { version = "0.1.0", features = ["async", "sync"] }
+
+# CLI构建
+clap = { version = "4.0", features = ["derive"] }
+
+# 异步运行时
+tokio = { version = "1.42", features = ["full"] }
+futures = "0.3"
+
+# HTTP客户端
+reqwest = { version = "0.12", features = ["json"] }
+serde_json = "1.0"
+
+# HTML处理
+html5ever = "0.35"
+markup5ever_rcdom = "0.35.0-unofficial"
+
+# 日志
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# 错误处理
+anyhow = "1.0"
+
+# 文本处理
+regex = "1.0"
+base64 = "0.21"
+
+# 文件操作
+walkdir = "2.0"
