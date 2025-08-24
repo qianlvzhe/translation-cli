@@ -2,12 +2,11 @@
 name = "translation-cli"
 version = "0.1.0"
 edition = "2021"
-description = "命令行HTML翻译工具，基于html-translation-lib库"
+description = "独立的高性能命令行HTML翻译工具，使用内置索引翻译技术"
 authors = ["Claude <noreply@anthropic.com>"]
 
 [dependencies]
-# 发布版本依赖库
-html-translation-lib = { version = "0.1.0", features = ["async", "sync"] }
+# html-translation-lib依赖已移除，使用内置的索引翻译模式
 
 # CLI构建
 clap = { version = "4.0", features = ["derive"] }
