@@ -5,6 +5,10 @@ edition = "2021"
 description = "独立的高性能命令行HTML翻译工具，使用内置索引翻译技术"
 authors = ["Claude <noreply@anthropic.com>"]
 
+[lib]
+name = "translation_cli"
+path = "src/lib.rs"
+
 [dependencies]
 # html-translation-lib依赖已移除，使用内置的索引翻译模式
 
@@ -23,6 +27,9 @@ serde_json = "1.0"
 html5ever = "0.35"
 markup5ever_rcdom = "0.35.0-unofficial"
 
+# 时间处理
+chrono = { version = "0.4", features = ["serde"] }
+
 # 日志
 tracing = "0.1"
 tracing-subscriber = "0.3"
@@ -33,6 +40,10 @@ anyhow = "1.0"
 # 文本处理
 regex = "1.0"
 base64 = "0.21"
+url = "2.0"
 
 # 文件操作
 walkdir = "2.0"
+
+# Web内容抓取和处理
+monolith = { version = "2.10.1", default-features = false }

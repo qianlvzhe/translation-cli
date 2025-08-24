@@ -15,6 +15,35 @@ pub struct TranslationStats {
     pub cache_hits: usize,
     pub cache_misses: usize,
     pub batches_created: usize,
+    // 网页爬取相关统计字段
+    pub crawl_time: Duration,
+    pub crawl_retries: usize,
+    pub temp_file_size: usize,
+    pub final_url: Option<String>,
+}
+
+impl Default for TranslationStats {
+    fn default() -> Self {
+        Self {
+            config_time: Duration::from_millis(0),
+            translator_init_time: Duration::from_millis(0),
+            file_read_time: Duration::from_millis(0),
+            translation_time: Duration::from_millis(0),
+            file_write_time: Duration::from_millis(0),
+            input_size: 0,
+            output_size: 0,
+            texts_collected: 0,
+            texts_filtered: 0,
+            cache_hits: 0,
+            cache_misses: 0,
+            batches_created: 0,
+            // 网页爬取相关字段默认值
+            crawl_time: Duration::from_millis(0),
+            crawl_retries: 0,
+            temp_file_size: 0,
+            final_url: None,
+        }
+    }
 }
 
 /// 打印性能统计
@@ -65,6 +94,23 @@ pub fn print_performance_stats(stats: &TranslationStats, total_duration: Duratio
         println!("   缓存命中: {} 次", stats.cache_hits);
         println!("   缓存未命中: {} 次", stats.cache_misses);
         println!("   命中率: {:.1}%", cache_hit_rate * 100.0);
+    }
+
+    // 网页爬取统计（如果进行了网页爬取）
+    if stats.crawl_time.as_millis() > 0 {
+        println!("\n🕷️ 网页爬取统计:");
+        println!("   爬取耗时: {}", format_duration(stats.crawl_time));
+        println!("   重试次数: {} 次", stats.crawl_retries);
+        if stats.temp_file_size > 0 {
+            println!(
+                "   临时文件大小: {} 字节 ({:.1} KB)",
+                stats.temp_file_size,
+                stats.temp_file_size as f64 / 1024.0
+            );
+        }
+        if let Some(ref final_url) = stats.final_url {
+            println!("   最终URL: {}", final_url);
+        }
     }
 
     // 性能指标

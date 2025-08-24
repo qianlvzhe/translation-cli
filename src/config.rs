@@ -1,5 +1,6 @@
 use clap::Parser;
 use std::path::PathBuf;
+use crate::api_constants::api_config;
 
 /// 本地翻译配置结构（替代html-translation-lib中的TranslationConfig）
 #[derive(Debug, Clone)]
@@ -56,11 +57,11 @@ impl Default for LocalTranslationConfig {
 
 /// CLI参数结构
 #[derive(Parser)]
-#[command(author, version, about = "高性能HTML翻译CLI工具 - 支持亚秒级文件翻译", long_about = None)]
+#[command(author, version, about = "高性能HTML翻译CLI工具 - 支持亚秒级文件翻译和网页爬取翻译", long_about = None)]
 pub struct Cli {
-    /// 输入HTML文件的绝对路径
-    #[arg(short, long, value_name = "FILE")]
-    pub input: PathBuf,
+    /// 输入HTML文件路径或网页URL
+    #[arg(short, long, value_name = "FILE_OR_URL")]
+    pub input: String,
 
     /// 输出文件路径 (可选，默认为输入文件名+语言代码)
     #[arg(short, long, value_name = "FILE")]
@@ -71,7 +72,7 @@ pub struct Cli {
     pub lang: String,
 
     /// 翻译API地址
-    #[arg(short, long, default_value = "****")]
+    #[arg(short, long, default_value = api_config::DEFAULT_API_URL)]
     pub api: String,
 
     /// 批处理大小 (优化性能)
@@ -109,6 +110,34 @@ pub struct Cli {
     /// 并发批次数量 (默认5)
     #[arg(long, default_value = "5")]
     pub concurrent_batches: usize,
+
+    /// 启用网页爬取模式
+    #[arg(long, help = "从URL爬取网页内容进行翻译")]
+    pub from_url: bool,
+
+    /// 保留临时HTML文件用于调试
+    #[arg(long, help = "保留爬取的临时HTML文件用于调试分析")]
+    pub keep_temp: bool,
+
+    /// 爬取时包含图片资源
+    #[arg(long, help = "爬取网页时包含图片资源")]
+    pub include_images: bool,
+
+    /// 爬取时包含CSS样式
+    #[arg(long, help = "爬取网页时包含CSS样式文件")]
+    pub include_css: bool,
+
+    /// 爬取时包含JavaScript
+    #[arg(long, help = "爬取网页时包含JavaScript文件")]
+    pub include_js: bool,
+
+    /// 爬取超时时间（秒）
+    #[arg(long, default_value = "30", help = "网页爬取的超时时间（秒）")]
+    pub crawl_timeout: u64,
+
+    /// 自定义User-Agent
+    #[arg(long, help = "自定义User-Agent字符串")]
+    pub user_agent: Option<String>,
 }
 
 /// 本地翻译统计结构（简化版本）

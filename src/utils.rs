@@ -1,6 +1,16 @@
 use anyhow::Result;
 use std::path::PathBuf;
 use tracing::warn;
+use url::Url;
+
+/// 输入源类型枚举
+#[derive(Debug, Clone)]
+pub enum InputSource {
+    /// 本地文件路径
+    File(PathBuf),
+    /// 网页URL
+    Url(Url),
+}
 
 /// 初始化日志系统
 pub fn init_logging(verbose: bool, quiet: bool) {
@@ -23,6 +33,30 @@ pub fn init_logging(verbose: bool, quiet: bool) {
         .init();
 }
 
+/// 验证输入源
+/// 用于判断输入是文件路径还是URL，并返回相应的类型
+pub fn validate_input_source(input: &str) -> Result<InputSource> {
+    // 先尝试解析为URL
+    if let Ok(url) = Url::parse(input) {
+        // 检查是否为HTTP/HTTPS URL
+        if url.scheme() == "http" || url.scheme() == "https" {
+            return Ok(InputSource::Url(url));
+        }
+    }
+    
+    // 尝试作为文件路径处理
+    let path = PathBuf::from(input);
+    
+    // 如果是相对路径，转换为绝对路径
+    let absolute_path = if path.is_absolute() {
+        path
+    } else {
+        std::env::current_dir()?.join(path)
+    };
+    
+    Ok(InputSource::File(absolute_path))
+}
+
 /// 验证输入文件
 pub fn validate_input_file(path: &PathBuf) -> Result<()> {
     if !path.exists() {
@@ -40,6 +74,48 @@ pub fn validate_input_file(path: &PathBuf) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// 为不同输入源生成输出路径
+pub fn generate_output_path_for_source(source: &InputSource, output: &Option<PathBuf>, lang: &str) -> PathBuf {
+    if let Some(output_path) = output {
+        return output_path.clone();
+    }
+
+    match source {
+        InputSource::File(path) => {
+            // 对于文件，使用现有逻辑
+            generate_output_path(path, &None, lang)
+        },
+        InputSource::Url(url) => {
+            // 对于URL，使用域名和路径生成文件名
+            let host = url.host_str().unwrap_or("webpage");
+            let path_segments: Vec<&str> = url.path_segments()
+                .map(|segments| segments.filter(|s| !s.is_empty()).collect())
+                .unwrap_or_default();
+            
+            let filename = if path_segments.is_empty() {
+                format!("{}_{}_{}.html", host, "index", lang)
+            } else {
+                let page_name = path_segments.last().unwrap_or(&"page");
+                // 移除文件扩展名（如果有的话）
+                let page_name = if let Some(dot_pos) = page_name.rfind('.') {
+                    &page_name[..dot_pos]
+                } else {
+                    page_name
+                };
+                format!("{}_{}_{}.html", host, page_name, lang)
+            };
+            
+            // 清理文件名中的非法字符
+            let safe_filename = filename
+                .chars()
+                .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' || c == '.' { c } else { '_' })
+                .collect::<String>();
+            
+            PathBuf::from(safe_filename)
+        }
+    }
 }
 
 /// 生成输出文件路径
