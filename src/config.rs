@@ -1,18 +1,55 @@
-use clap::Parser;
+//! 配置管理模块
+//!
+//! 提供CLI参数解析和翻译配置管理功能
+
+// 标准库导入
 use std::path::PathBuf;
+
+// 第三方crate导入
+use clap::Parser;
+
+// 本地模块导入
 use crate::api_constants::api_config;
 
-/// 本地翻译配置结构（替代html-translation-lib中的TranslationConfig）
+/// 本地翻译配置结构体
+/// 
+/// 用于替代html-translation-lib中的TranslationConfig，提供更轻量级的配置管理。
+/// 支持Builder模式进行链式配置。
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use translation_cli::config::LocalTranslationConfig;
+/// 
+/// let config = LocalTranslationConfig::new()
+///     .target_language("zh")
+///     .api_url("http://localhost:1188/translate")
+///     .batch_size(50)
+///     .max_retries(5);
+/// ```
 #[derive(Debug, Clone)]
 pub struct LocalTranslationConfig {
-    pub target_lang: String,
-    pub api_url: String,
-    pub batch_size: usize,
-    pub max_retries: usize,
-    pub enable_cache: bool,
+    /// 目标语言代码 (如: zh, en, ja, ko)
+    target_lang: String,
+    /// 翻译API服务地址
+    api_url: String,
+    /// 批处理大小
+    batch_size: usize,
+    /// 最大重试次数
+    max_retries: usize,
+    /// 是否启用缓存
+    enable_cache: bool,
 }
 
 impl LocalTranslationConfig {
+    /// 创建新的配置实例
+    /// 
+    /// 返回具有默认值的配置实例：
+    /// - 目标语言: 中文 ("zh")
+    /// - API地址: 本地开发服务器
+    /// - 批处理大小: 25
+    /// - 最大重试次数: 3
+    /// - 启用缓存: true
     pub fn new() -> Self {
         Self {
             target_lang: "zh".to_string(),
@@ -23,28 +60,58 @@ impl LocalTranslationConfig {
         }
     }
     
+    /// 获取目标语言代码
+    pub fn target_lang(&self) -> &str {
+        &self.target_lang
+    }
+    
+    /// 获取API地址
+    pub fn api_url(&self) -> &str {
+        &self.api_url
+    }
+    
+    /// 获取批处理大小
+    pub fn batch_size(&self) -> usize {
+        self.batch_size
+    }
+    
+    /// 获取最大重试次数
+    pub fn max_retries(&self) -> usize {
+        self.max_retries
+    }
+    
+    /// 检查是否启用缓存
+    pub fn is_cache_enabled(&self) -> bool {
+        self.enable_cache
+    }
+    
+    /// 设置目标语言代码
     pub fn target_language(mut self, lang: &str) -> Self {
         self.target_lang = lang.to_string();
         self
     }
     
-    pub fn api_url(mut self, url: &str) -> Self {
+    /// 设置API地址
+    pub fn with_api_url(mut self, url: &str) -> Self {
         self.api_url = url.to_string();
         self
     }
     
-    pub fn enable_cache(mut self, enable: bool) -> Self {
-        self.enable_cache = enable;
-        self
-    }
-    
-    pub fn batch_size(mut self, size: usize) -> Self {
+    /// 设置批处理大小
+    pub fn with_batch_size(mut self, size: usize) -> Self {
         self.batch_size = size;
         self
     }
     
-    pub fn max_retries(mut self, retries: usize) -> Self {
+    /// 设置最大重试次数
+    pub fn with_max_retries(mut self, retries: usize) -> Self {
         self.max_retries = retries;
+        self
+    }
+    
+    /// 设置是否启用缓存
+    pub fn enable_cache(mut self, enable: bool) -> Self {
+        self.enable_cache = enable;
         self
     }
 }

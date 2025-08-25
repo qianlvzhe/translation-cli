@@ -1,8 +1,17 @@
+//! HTML处理模块
+//!
+//! 提供HTML解析、文本提取、DOM操作和序列化功能
+
+// 标准库导入
+use std::collections::{HashMap, HashSet, VecDeque};
+
+// 第三方crate导入
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use markup5ever_rcdom::{NodeData, RcDom};
 use regex::Regex;
-use std::collections::{HashMap, HashSet, VecDeque};
+
+// 本地模块导入
 use crate::utils::{is_translatable_text, extract_base64_from_data_uri};
 
 /// 提取DOM中的可翻译文本

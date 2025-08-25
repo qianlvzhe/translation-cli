@@ -1,3 +1,11 @@
+//! 翻译核心模块
+//!
+//! 实现索引模式的高性能翻译功能，支持并发批处理
+
+// 标准库导入
+// (无直接标准库导入)
+
+// 第三方crate导入
 use anyhow::{Context, Result};
 use futures::future::join_all;
 use html5ever::parse_document;
@@ -8,9 +16,64 @@ use reqwest::Client;
 use serde_json::json;
 use tracing::{info, warn};
 
+// 本地模块导入
 use crate::html_processor::{extract_translatable_texts, apply_translations_to_dom, serialize_dom_to_html};
 
-/// 使用索引模式的高性能翻译
+/// 使用索引模式进行高性能翻译
+/// 
+/// 该函数实现了项目的核心创新 - 索引标记技术，通过为每个文本片段
+/// 分配唯一索引，实现批量发送API请求，显著提高翻译效率。
+/// 
+/// # 工作原理
+/// 
+/// 1. 解析HTML结构为DOM树
+/// 2. 提取所有可翻译文本内容
+/// 3. 为文本分配索引标记 [0] text, [1] text...
+/// 4. 分批并发发送翻译请求
+/// 5. 解析索引标记的翻译结果
+/// 6. 将翻译结果应用到DOM结构
+/// 7. 序列化为最终HTML
+/// 
+/// # Arguments
+/// 
+/// * `html_content` - 要翻译的HTML内容字符串
+/// * `api_url` - 翻译API服务地址
+/// * `concurrent_batches` - 并发批次数量，默认5个
+/// * `verbose` - 是否输出详细日志信息
+/// 
+/// # Returns
+/// 
+/// * `Result<String>` - 成功时返回翻译后的HTML内容
+/// 
+/// # Errors
+/// 
+/// * 当HTML解析失败时返回错误
+/// * 当翻译API请求失败时返回错误  
+/// * 当DOM重构或序列化失败时返回错误
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use translation_cli::translator::translate_with_indexed_mode;
+/// 
+/// let html = "<html><body><h1>Hello World</h1><p>Welcome to our website</p></body></html>";
+/// let result = translate_with_indexed_mode(
+///     html, 
+///     "http://localhost:1188/translate", 
+///     5, 
+///     false
+/// ).await?;
+/// 
+/// assert!(result.contains("你好"));
+/// assert!(result.contains("欢迎"));
+/// ```
+/// 
+/// # Performance
+/// 
+/// 该函数针对高性能场景设计：
+/// - 小文件(<50KB): 目标 <1000ms
+/// - 中文件(50KB-500KB): 目标 <3000ms  
+/// - 大文件(>500KB): 目标 <10000ms
 pub async fn translate_with_indexed_mode(
     html_content: &str,
     api_url: &str,

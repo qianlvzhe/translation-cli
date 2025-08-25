@@ -7,3 +7,12 @@ pub mod temp_manager;
 pub mod translator;
 pub mod utils;
 pub mod html_processor;
+pub mod error;
+pub mod config;
+pub mod stats;
+pub mod api_constants;
+
+// 导出核心类型
+pub use error::{TranslationError, Result};
+pub use config::{LocalTranslationConfig, Cli};
+pub use utils::InputSource;

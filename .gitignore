@@ -2,3 +2,5 @@
 *.html
 *.md
 !README.md
+!monolith编码风格.md
+!编码规范.md

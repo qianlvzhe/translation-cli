@@ -5,8 +5,11 @@
 //! - 将网页转换为独立的HTML文件（包含CSS、JS、图片等资源）
 //! - 为后续的翻译处理准备标准化的HTML内容
 
-use anyhow::{Context, Result};
+// 标准库导入
 use std::path::{Path, PathBuf};
+
+// 第三方crate导入
+use anyhow::{Context, Result};
 use tracing::{debug, info, warn};
 
 /// Web爬虫配置结构体
@@ -43,6 +46,16 @@ impl Default for WebCrawlerConfig {
 }
 
 /// Web爬虫主要结构体
+/// 
+/// 集成Monolith库实现网页内容抓取和处理功能。
+/// 支持自定义资源包含策略、重试机制和安全配置。
+/// 
+/// # Features
+/// 
+/// - 完整页面保存：将CSS、图片等资源内嵌为data URL
+/// - 异步封装：使用tokio::spawn_blocking封装blocking API
+/// - 重试机制：最多3次重试，指数退避延迟
+/// - 资源配置：可选择性包含CSS、JS、图片等资源
 pub struct WebCrawler {
     config: WebCrawlerConfig,
 }

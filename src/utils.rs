@@ -1,9 +1,24 @@
-use anyhow::Result;
+//! 通用工具函数模块
+//!
+//! 提供输入验证、路径生成、文本处理等通用功能
+
+// 标准库导入
 use std::path::PathBuf;
+
+// 第三方crate导入
+use anyhow::Result;
 use tracing::warn;
 use url::Url;
 
 /// 输入源类型枚举
+/// 
+/// 表示翻译工具支持的两种输入类型，用于统一处理
+/// 本地文件和网页URL的翻译需求。
+/// 
+/// # Variants
+/// 
+/// * `File` - 本地HTML文件路径
+/// * `Url` - 网页URL地址，支持HTTP和HTTPS协议
 #[derive(Debug, Clone)]
 pub enum InputSource {
     /// 本地文件路径
@@ -33,8 +48,49 @@ pub fn init_logging(verbose: bool, quiet: bool) {
         .init();
 }
 
-/// 验证输入源
-/// 用于判断输入是文件路径还是URL，并返回相应的类型
+/// 验证并解析输入源
+/// 
+/// 自动识别输入字符串是本地文件路径还是URL地址，
+/// 并返回相应的输入源类型。
+/// 
+/// # 识别逻辑
+/// 
+/// 1. 首先尝试解析为URL
+/// 2. 检查是否为支持的HTTP/HTTPS协议
+/// 3. 如果不是URL，则处理为文件路径
+/// 4. 自动将相对路径转换为绝对路径
+/// 
+/// # Arguments
+/// 
+/// * `input` - 输入字符串（文件路径或URL地址）
+/// 
+/// # Returns
+/// 
+/// * `Result<InputSource>` - 成功时返回解析后的输入源类型
+/// 
+/// # Errors
+/// 
+/// * 当无法获取当前工作目录时返回错误
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use translation_cli::utils::validate_input_source;
+/// 
+/// // URL输入
+/// let url_source = validate_input_source("https://example.com").unwrap();
+/// match url_source {
+///     InputSource::Url(url) => println!("检测到URL: {}", url),
+///     _ => unreachable!(),
+/// }
+/// 
+/// // 文件路径输入  
+/// let file_source = validate_input_source("test.html").unwrap();
+/// match file_source {
+///     InputSource::File(path) => println!("检测到文件: {}", path.display()),
+///     _ => unreachable!(),
+/// }
+/// ```
 pub fn validate_input_source(input: &str) -> Result<InputSource> {
     // 先尝试解析为URL
     if let Ok(url) = Url::parse(input) {

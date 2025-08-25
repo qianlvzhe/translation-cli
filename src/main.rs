@@ -1,18 +1,28 @@
+//! Translation CLI 主程序入口
+//!
+//! 高性能HTML翻译命令行工具，支持文件和URL两种输入模式
+
+// 标准库导入
+use std::time::Instant;
+
+// 第三方crate导入
 use anyhow::{Context, Result};
 use clap::Parser;
-use std::time::Instant;
 use tracing::{error, info, warn};
 
+// 本地模块导入
+mod api_constants;
 mod config;
+mod error;
 mod stats;
 mod utils;
 mod html_processor;
 mod translator;
 mod web_crawler;
 mod temp_manager;
-mod api_constants;
 
 use config::{Cli, LocalTranslationConfig, LocalTranslationStats};
+use error::TranslationError;
 use stats::{TranslationStats, print_performance_stats, format_duration};
 use utils::{init_logging, validate_input_source, generate_output_path_for_source, InputSource};
 use translator::translate_with_indexed_mode;
@@ -109,10 +119,10 @@ async fn translate_from_file(cli: &Cli, file_path: &std::path::PathBuf, output_p
     // 创建本地配置（替代TranslationConfig）
     let _config = LocalTranslationConfig::new()
         .target_language(&cli.lang)
-        .api_url(api_url)
+        .with_api_url(api_url)
         .enable_cache(!cli.no_cache)
-        .batch_size(batch_size)
-        .max_retries(cli.max_retries);
+        .with_batch_size(batch_size)
+        .with_max_retries(cli.max_retries);
 
     let config_duration = config_start.elapsed();
 
@@ -194,10 +204,10 @@ async fn translate_from_url(cli: &Cli, url: &url::Url, output_path: &std::path::
     // 创建本地配置
     let _config = LocalTranslationConfig::new()
         .target_language(&cli.lang)
-        .api_url(api_url)
+        .with_api_url(api_url)
         .enable_cache(!cli.no_cache)
-        .batch_size(batch_size)
-        .max_retries(cli.max_retries);
+        .with_batch_size(batch_size)
+        .with_max_retries(cli.max_retries);
 
     let config_duration = config_start.elapsed();
 
